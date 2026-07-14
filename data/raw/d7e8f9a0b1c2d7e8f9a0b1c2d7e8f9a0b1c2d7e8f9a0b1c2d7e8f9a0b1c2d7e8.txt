@@ -1,0 +1,36 @@
+RAG System Internal Notes
+=========================
+Author: project team
+Date: 2026-07-08
+
+These are rough working notes captured during the initial design session.
+They are not polished — just enough to remember the decisions we made.
+
+--- Embedding model choice ---
+We evaluated three options:
+  1. OpenAI text-embedding-3-small  (1536-dim, cheap, fast)
+  2. OpenAI text-embedding-3-large  (3072-dim, better recall, 5x cost)
+  3. Sentence-Transformers all-MiniLM-L6-v2  (384-dim, local, free)
+
+Decision: start with text-embedding-3-small for the prototype. Switch to
+large only if recall metrics fall below 0.85 on our eval set.
+
+--- Chunk size ---
+After some quick experiments on our internal docs corpus:
+  - 256 tokens: too fragmented, retrieval returns noisy results
+  - 512 tokens: good balance
+  - 1024 tokens: accurate but burns context budget quickly
+
+Going with 512 tokens, 64-token overlap.
+
+--- Metadata we want to keep per chunk ---
+  - source filename or URL
+  - page number (PDFs) or section heading (HTML/Markdown)
+  - date of the source document
+  - content hash of the original file
+
+--- Open questions ---
+  - Do we need a re-ranker? Probably yes once the corpus grows past 10k docs.
+  - Should we store raw HTML or strip to plain text before embedding?
+    Leaning toward stripping — HTML tags add noise to embeddings.
+  - Eval framework: RAGAS looks promising, need to test it.
